@@ -1,0 +1,47 @@
+-- Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+-- UI Elements
+local toggleButton = script.Parent:WaitForChild("ToggleButton") or game.Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("ScreenGui"):WaitForChild("ToggleButton")
+
+-- Variables
+local tracking = false
+local connections = {}
+
+-- Function to track players
+local function startTracking()
+	for _, player in pairs(Players:GetPlayers()) do
+		if player ~= Players.LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+			local head = player.Character.Head
+
+			local conn = RunService.RenderStepped:Connect(function()
+				if head and head:IsDescendantOf(workspace) then
+					workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, head.Position)
+				end
+			end)
+			table.insert(connections, conn)
+		end
+	end
+end
+
+-- Function to stop tracking
+local function stopTracking()
+	for _, conn in ipairs(connections) do
+		conn:Disconnect()
+	end
+	table.clear(connections)
+end
+
+-- Button Click Handler
+toggleButton.MouseButton1Click:Connect(function()
+	tracking = not tracking
+
+	if tracking then
+		toggleButton.Text = "Stop Tracking"
+		startTracking()
+	else
+		toggleButton.Text = "Start Tracking"
+		stopTracking()
+	end
+end)
